@@ -1,0 +1,25 @@
+daily10
+
+"10 mins a day makes a master in a year"
+
+This text file is a collection of me sitting down and writing my thoughts down
+
+
+April 2026
+
+friday the 22nd 
+
+I want to relearn the fundamentals of computer science in order to better understand and refill gaps in my knowledge so... 
+what is programming ? programming is the process of designing instructions for a computer to follow to solve a problem.
+a variables is a named containers to store data
+a data type is a classification of what kind of type data is 
+    data types include, strings, integers, floats, booleans, 
+syntax is the arrangement of which words, numbers, characters are arranged for the computer to understand the code
+a function is a reusable block of code that preforms some sort of task
+
+I've realized id like to take a different approach of learning from scratch, instead of starting here ill instead start 
+from atoms and then work up.
+
+saturday the 23rd
+
+CS from atoms...
