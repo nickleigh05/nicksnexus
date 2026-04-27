@@ -23,3 +23,20 @@ from atoms and then work up.
 saturday the 23rd
 
 CS from atoms...
+
+The atomic foundation for computers is silicon, when it comes to silicone and semiconductors. I learned that when you dope 
+the silicone with other elements to prevent the flow of electricity, you actually can create the on and off the yes or no or the 
+true and false or the zero to one operation which is the microscopic transistor
+
+this is where my understanding of logic gate comes in by allowing these combinations of silicone elements to create hardware transistors
+You now have the ability to form logic gates on the hardware so when they allow and disallow the flow of electrons through these logic gates
+now allows for the transfer of logical outputs into information
+
+so for example, a high voltage would signal a one and a low voltage with signal is zero
+
+and then, with the implementation of millions of these gates, these logic gates become an ALU
+in ALU stands for arithmetic logic unit which is just where the CPU uses these zeros and ones or high and low voltage
+log gates to perform arithmetic calculations and operations
+by pushing these electrons to specific logic gates, we get a precise logical outcome through the use of a specific electrical state
+
+tomorrow, I'll go over the binary bits and I'll go over how represent complex data and have the CPU organizes these electric signals 
