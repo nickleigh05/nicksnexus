@@ -1,0 +1,41 @@
+---
+import '../styles/global.css'
+
+interface Props {
+  title?: string
+}
+
+const { title = 'Nick Leigh — Portfolio' } = Astro.props
+---
+
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="bg-gray-950 text-gray-100 font-sans antialiased">
+    <nav class="fixed top-0 w-full bg-gray-950/80 backdrop-blur border-b border-gray-800 z-50">
+      <div class="max-w-5xl mx-auto px-6 flex items-center justify-between h-14">
+        <span class="font-semibold text-white">Nick Leigh</span>
+        <ul class="flex gap-6 text-sm text-gray-400">
+          <li><a href="#about" class="hover:text-white transition-colors">About</a></li>
+          <li><a href="#skills" class="hover:text-white transition-colors">Skills</a></li>
+          <li><a href="#projects" class="hover:text-white transition-colors">Projects</a></li>
+          <li><a href="#contact" class="hover:text-white transition-colors">Contact</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="border-t border-gray-800 py-8 text-center text-sm text-gray-500">
+      © {new Date().getFullYear()} Nick Leigh
+    </footer>
+  </body>
+</html>
