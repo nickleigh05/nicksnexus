@@ -1,1 +1,196 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/inter';
+@import '@fontsource/jetbrains-mono';
+
+@theme {
+  /* near-black with a violet undertone — true #000 reads flat under glass */
+  --color-void: #050208;
+  --color-ink: #eceaf6;
+  --color-ink-soft: #a49ec4;
+  --color-hairline: color-mix(in oklab, #eceaf6 12%, transparent);
+
+  /* the neon triad: electric blue → violet → pink */
+  --color-neon-blue: #00d4ff;
+  --color-neon-violet: #8b5cf6;
+  --color-neon-pink: #ff2d96;
+
+  --font-display: 'Space Grotesk Variable', system-ui, sans-serif;
+  --font-sans: 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout-expo: cubic-bezier(0.87, 0, 0.13, 1);
+  --dur-micro: 180ms;
+  --dur-ui: 300ms;
+  --dur-entrance: 800ms;
+}
+
+@layer base {
+  ::selection {
+    background-color: var(--color-neon-pink);
+    color: var(--color-void);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-neon-blue);
+    outline-offset: 3px;
+  }
+
+  body {
+    /* aurora wash under the (transparent) WebGL canvas — doubles as the
+       graceful fallback when WebGL is unavailable or motion is reduced */
+    background-color: var(--color-void);
+    background-image:
+      radial-gradient(ellipse 90% 55% at 15% -10%, rgb(139 92 246 / 0.22), transparent 70%),
+      radial-gradient(ellipse 70% 45% at 95% 5%, rgb(0 212 255 / 0.13), transparent 70%),
+      radial-gradient(ellipse 60% 45% at 50% 115%, rgb(255 45 150 / 0.12), transparent 70%);
+    background-attachment: fixed;
+  }
+
+  /* film grain over everything — keeps the dark surface from banding */
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    pointer-events: none;
+    opacity: 0.05;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px 180px;
+  }
+
+  /* no-motion-first: elements start visible; motion script hides + reveals
+     them only when the user allows motion (JS is bundled, so no race) */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-reveal],
+    [data-hero] {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* neon gradient text for headline accents */
+@utility text-neon {
+  background-image: linear-gradient(
+    100deg,
+    var(--color-neon-blue),
+    var(--color-neon-violet) 50%,
+    var(--color-neon-pink)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* the glass surface: translucent fill + backdrop blur so the WebGL layer
+   visibly warps underneath; border catches the light at the edge */
+@utility glass {
+  background-color: rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+}
+
+@utility glass-bright {
+  background-color: rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+}
+
+/* primary CTA: gradient fill with a neon halo that intensifies on hover */
+@utility btn-neon {
+  display: inline-block;
+  border-radius: 9999px;
+  padding: 0.875rem 2rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-void);
+  background-image: linear-gradient(
+    100deg,
+    var(--color-neon-blue),
+    var(--color-neon-violet) 55%,
+    var(--color-neon-pink)
+  );
+  background-size: 150% 100%;
+  background-position: 0% 0%;
+  box-shadow: 0 0 24px rgb(139 92 246 / 0.45);
+  transition:
+    background-position var(--dur-ui) var(--ease-out-expo),
+    box-shadow var(--dur-ui) var(--ease-out-expo),
+    transform var(--dur-ui) var(--ease-out-expo);
+
+  &:hover {
+    background-position: 100% 0%;
+    box-shadow: 0 0 44px rgb(255 45 150 / 0.55);
+    transform: translateY(-2px);
+  }
+}
+
+/* secondary CTA: glass pill that lights its border on hover */
+@utility btn-glass {
+  display: inline-block;
+  border-radius: 9999px;
+  padding: 0.875rem 2rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--color-ink);
+  background-color: rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  transition:
+    border-color var(--dur-ui) var(--ease-out-expo),
+    background-color var(--dur-ui) var(--ease-out-expo),
+    box-shadow var(--dur-ui) var(--ease-out-expo),
+    transform var(--dur-ui) var(--ease-out-expo);
+
+  &:hover {
+    border-color: rgb(0 212 255 / 0.6);
+    background-color: rgb(255 255 255 / 0.1);
+    box-shadow: 0 0 28px rgb(0 212 255 / 0.25);
+    transform: translateY(-2px);
+  }
+}
+
+/* inline text links: underline sweeps in, color shifts to neon blue */
+@utility link-ink {
+  text-decoration: none;
+  padding-bottom: 2px;
+  background-image:
+    linear-gradient(var(--color-neon-blue), var(--color-neon-blue)),
+    linear-gradient(
+      color-mix(in oklab, var(--color-neon-blue) 40%, transparent),
+      color-mix(in oklab, var(--color-neon-blue) 40%, transparent)
+    );
+  background-repeat: no-repeat;
+  background-position:
+    0 100%,
+    0 100%;
+  background-size:
+    0% 1.5px,
+    100% 1.5px;
+  transition:
+    background-size var(--dur-ui) var(--ease-out-expo),
+    color var(--dur-micro) ease;
+
+  &:hover {
+    color: var(--color-neon-blue);
+    background-size:
+      100% 1.5px,
+      100% 1.5px;
+  }
+}
