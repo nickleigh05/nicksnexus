@@ -1,6 +1,6 @@
 # nicksnexus
 
-Personal site for Nick Leigh — [nickleigh.github.io/nicksnexus](https://nickleigh.github.io/nicksnexus).
+Personal site for Nick Leigh — [nicksnexus](https://nickleigh05.github.io/nicksnexus/).
 
 A single page rendered over a live WebGL background: a simplex-noise blob with custom GLSL shaders drifts behind a glassmorphic UI, so the animation visibly warps through the frosted cards above it.
 
