@@ -1,9 +1,11 @@
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { SplitText } from 'gsap/SplitText'
+import Lenis from 'lenis'
 
 // No-motion-first: global.css only hides [data-hero]/[data-reveal] when the
 // user allows motion, and this guard mirrors that media query exactly.
+// Reduced-motion users also keep native scrolling — Lenis never initializes.
 if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
   init()
 }
@@ -12,6 +14,8 @@ async function init() {
   gsap.registerPlugin(ScrollTrigger, SplitText)
   gsap.defaults({ ease: 'expo.out', duration: 0.8 })
 
+  smoothScroll()
+
   // SplitText must measure real line breaks, so wait for webfonts
   await document.fonts.ready
 
@@ -19,6 +23,31 @@ async function init() {
   scrollReveals()
   cardTilt()
   glassShine()
+  magneticButtons()
+}
+
+// inertia scrolling driven by GSAP's ticker so Lenis and ScrollTrigger never
+// disagree about where the page is
+function smoothScroll() {
+  const lenis = new Lenis()
+  lenis.on('scroll', ScrollTrigger.update)
+  gsap.ticker.add((time) => lenis.raf(time * 1000))
+  gsap.ticker.lagSmoothing(0)
+
+  // CSS smooth scrolling would fight Lenis's per-frame scrollTop writes; it
+  // stays in the markup as the fallback for reduced-motion and no-JS
+  document.documentElement.classList.remove('scroll-smooth')
+
+  // anchor links glide; the offset stands in for scroll-margin, which only
+  // native jumps respect
+  document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      const target = document.querySelector<HTMLElement>(link.hash)
+      if (!target) return
+      e.preventDefault()
+      lenis.scrollTo(target, { offset: -100 })
+    })
+  })
 }
 
 function heroIntro() {
@@ -79,7 +108,8 @@ function scrollReveals() {
         autoAlpha: 1,
         y: 0,
         scale: 1,
-        stagger: 0.1,
+        duration: 1,
+        stagger: 0.12,
         scrollTrigger: { trigger: group, start: 'top 85%', once: true },
       },
     )
@@ -102,6 +132,27 @@ function glassShine() {
             onUpdate: (self) => setShine(self.progress),
           },
     )
+  })
+}
+
+// the signature interaction: buttons lean toward the cursor and ease back,
+// kept to a few pixels so it reads as physical weight, not a gimmick
+function magneticButtons() {
+  if (!window.matchMedia('(pointer: fine)').matches) return
+
+  document.querySelectorAll<HTMLElement>('[data-magnetic]').forEach((el) => {
+    const x = gsap.quickTo(el, 'x', { duration: 0.45, ease: 'power3.out' })
+    const y = gsap.quickTo(el, 'y', { duration: 0.45, ease: 'power3.out' })
+
+    el.addEventListener('pointermove', (e) => {
+      const r = el.getBoundingClientRect()
+      x(((e.clientX - (r.left + r.width / 2)) / r.width) * 12)
+      y(((e.clientY - (r.top + r.height / 2)) / r.height) * 10)
+    })
+    el.addEventListener('pointerleave', () => {
+      x(0)
+      y(0)
+    })
   })
 }
 

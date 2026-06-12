@@ -10,10 +10,12 @@
   --color-ink-soft: #d3c8ba;
   --color-hairline: color-mix(in oklab, #f5f0e8 12%, transparent);
 
-  /* the neon triad: red → orange → yellow */
-  --color-neon-red: #ff3b3b;
-  --color-neon-orange: #ff8c1a;
-  --color-neon-yellow: #ffd60a;
+  /* the ember triad: red → orange → yellow, desaturated so nothing vibrates
+     against the dark ground; orange is the only interactive accent, red and
+     yellow are reserved for rare moments (gradient text, CTA, badge) */
+  --color-neon-red: #e25c4a;
+  --color-neon-orange: #f59141;
+  --color-neon-yellow: #eec45c;
 
   --font-display: 'Space Grotesk Variable', system-ui, sans-serif;
   --font-sans: 'Inter Variable', system-ui, sans-serif;
@@ -42,9 +44,9 @@
        graceful fallback when WebGL is unavailable or motion is reduced */
     background-color: var(--color-void);
     background-image:
-      radial-gradient(ellipse 90% 55% at 15% -10%, rgb(255 59 59 / 0.2), transparent 70%),
-      radial-gradient(ellipse 70% 45% at 95% 5%, rgb(255 140 26 / 0.13), transparent 70%),
-      radial-gradient(ellipse 60% 45% at 50% 115%, rgb(255 214 10 / 0.1), transparent 70%);
+      radial-gradient(ellipse 90% 55% at 15% -10%, rgb(226 92 74 / 0.16), transparent 70%),
+      radial-gradient(ellipse 70% 45% at 95% 5%, rgb(245 145 65 / 0.1), transparent 70%),
+      radial-gradient(ellipse 60% 45% at 50% 115%, rgb(238 196 92 / 0.08), transparent 70%);
     background-attachment: fixed;
   }
 
@@ -107,10 +109,10 @@
     160deg,
     rgb(255 255 255 / 0.05),
     rgb(255 255 255 / 0.015) 45%,
-    rgb(8 3 2 / 0.22)
+    rgb(8 3 2 / 0.3)
   );
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(40px) saturate(1.4);
+  -webkit-backdrop-filter: blur(40px) saturate(1.4);
   border: 1px solid rgb(255 255 255 / 0.14);
   box-shadow:
     0 25px 50px -12px rgb(0 0 0 / 0.5),
@@ -143,10 +145,10 @@
     160deg,
     rgb(255 255 255 / 0.08),
     rgb(255 255 255 / 0.02) 45%,
-    rgb(8 3 2 / 0.25)
+    rgb(8 3 2 / 0.32)
   );
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(40px) saturate(1.4);
+  -webkit-backdrop-filter: blur(40px) saturate(1.4);
   border: 1px solid rgb(255 255 255 / 0.2);
   box-shadow:
     0 25px 50px -12px rgb(0 0 0 / 0.5),
@@ -188,7 +190,7 @@
   );
   background-size: 150% 100%;
   background-position: 0% 0%;
-  box-shadow: 0 0 24px rgb(255 140 26 / 0.45);
+  box-shadow: 0 0 24px rgb(245 145 65 / 0.4);
   transition:
     background-position var(--dur-ui) var(--ease-out-expo),
     box-shadow var(--dur-ui) var(--ease-out-expo),
@@ -196,7 +198,7 @@
 
   &:hover {
     background-position: 100% 0%;
-    box-shadow: 0 0 44px rgb(255 214 10 / 0.5);
+    box-shadow: 0 0 44px rgb(238 196 92 / 0.45);
     transform: translateY(-2px);
   }
 }
@@ -220,10 +222,34 @@
     transform var(--dur-ui) var(--ease-out-expo);
 
   &:hover {
-    border-color: rgb(255 140 26 / 0.6);
+    border-color: rgb(245 145 65 / 0.6);
     background-color: rgb(255 255 255 / 0.1);
-    box-shadow: 0 0 28px rgb(255 140 26 / 0.25);
+    box-shadow: 0 0 28px rgb(245 145 65 / 0.25);
     transform: translateY(-2px);
+  }
+}
+
+/* toolbox chips: small glass pills that light their border on hover */
+@utility chip {
+  display: inline-block;
+  border-radius: 9999px;
+  padding: 0.5rem 1.125rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: var(--color-ink-soft);
+  background-color: rgb(255 255 255 / 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  transition:
+    border-color var(--dur-ui) var(--ease-out-expo),
+    color var(--dur-ui) var(--ease-out-expo),
+    background-color var(--dur-ui) var(--ease-out-expo);
+
+  &:hover {
+    border-color: color-mix(in oklab, var(--color-neon-orange) 60%, transparent);
+    color: var(--color-ink);
+    background-color: rgb(255 255 255 / 0.08);
   }
 }
 

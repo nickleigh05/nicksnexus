@@ -45,7 +45,7 @@ const year = new Date().getFullYear()
     <div class="pointer-events-none relative z-10">
       <header class="fixed inset-x-0 top-0 z-20 px-4" data-hero="frame">
         <nav
-          class="glass pointer-events-auto mx-auto mt-4 flex max-w-4xl items-center justify-between rounded-full px-6 py-3"
+          class="glass pointer-events-auto mx-auto mt-4 flex max-w-5xl items-center justify-between rounded-full px-6 py-3"
         >
           <a
             href={`${base}/`}
@@ -75,30 +75,60 @@ const year = new Date().getFullYear()
               github
             </a>
             <a href="#socials" class="link-ink">socials</a>
+            <a href={`${base}/resume.pdf`} target="_blank" class="hidden link-ink sm:inline">
+              resume
+            </a>
           </div>
         </nav>
       </header>
 
-      <main class="mx-auto max-w-4xl px-6">
+      <main class="mx-auto max-w-5xl px-6">
         <slot />
       </main>
 
-      <footer
-        class="mx-auto flex max-w-4xl items-baseline justify-between px-6 py-10 font-mono text-xs text-ink-soft"
-      >
-        <span
-          >© {year} · <span title={`${year} in hexadecimal`}
-            >0x{year.toString(16).toUpperCase()}</span
-          ></span
+      <footer class="mx-auto max-w-5xl px-6 pb-12">
+        <div
+          class="flex flex-col gap-6 border-t border-hairline pt-10 sm:flex-row sm:items-end sm:justify-between"
         >
-        <a
-          href="https://github.com/nickleigh05"
-          target="_blank"
-          rel="noopener"
-          class="pointer-events-auto link-ink"
+          <div>
+            <p class="font-display text-lg font-bold tracking-tight">
+              nicholas leigh<span class="text-neon">.</span>
+            </p>
+            <p class="mt-1 text-sm text-ink-soft">
+              cs student building things in the arizona valley.
+            </p>
+          </div>
+          <div class="pointer-events-auto flex flex-wrap items-center gap-5 text-sm">
+            <a href="mailto:nickleigh05@icloud.com" class="link-ink">email</a>
+            <a
+              href="https://www.linkedin.com/in/-nicholas-leigh"
+              target="_blank"
+              rel="noopener"
+              class="link-ink"
+            >
+              linkedin
+            </a>
+            <a
+              href="https://github.com/nickleigh05"
+              target="_blank"
+              rel="noopener"
+              class="link-ink"
+            >
+              github
+            </a>
+            <a href={`${base}/resume.pdf`} target="_blank" class="link-ink">resume</a>
+          </div>
+        </div>
+        <div
+          class="mt-8 flex flex-wrap items-baseline justify-between gap-2 font-mono text-xs text-ink-soft"
         >
-          github
-        </a>
+          <span>designed &amp; built by nicholas leigh · astro + three.js</span>
+          <span
+            >© {year} · <span title={`${year} in hexadecimal`}
+              >0x{year.toString(16).toUpperCase()}</span
+            ></span
+          >
+        </div>
       </footer>
     </div>
 
@@ -106,8 +136,14 @@ const year = new Date().getFullYear()
       import { initWebGLBackground } from '../scripts/webgl-bg'
       import '../scripts/motion'
 
-      const canvas = document.getElementById('webgl-bg')
-      if (canvas instanceof HTMLCanvasElement) initWebGLBackground(canvas)
+      // boot WebGL after load so LCP locks onto the headline, not the canvas;
+      // until then the CSS aurora wash holds the frame
+      const boot = () => {
+        const canvas = document.getElementById('webgl-bg')
+        if (canvas instanceof HTMLCanvasElement) initWebGLBackground(canvas)
+      }
+      if (document.readyState === 'complete') boot()
+      else window.addEventListener('load', boot, { once: true })
     </script>
   </body>
 </html>

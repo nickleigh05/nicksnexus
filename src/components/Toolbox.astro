@@ -1,0 +1,33 @@
+---
+// mirrors the stack on Nick's GitHub profile; one chip per tool he uses
+const tools = [
+  'python',
+  'typescript',
+  'java',
+  'c / c++',
+  'aws',
+  'gcp',
+  'pytorch',
+  'linux',
+  'git',
+  'mysql',
+]
+---
+
+<section id="toolbox" class="scroll-mt-28 pb-36" data-reveal-group>
+  <p class="mb-3 font-mono text-xs tracking-[0.2em] text-neon-orange uppercase" data-reveal>
+    11 / toolbox
+  </p>
+  <h2 class="mb-10 font-display text-4xl font-bold tracking-tight sm:text-5xl" data-reveal>
+    What I work with.
+  </h2>
+  <ul class="flex max-w-3xl flex-wrap gap-3">
+    {
+      tools.map((tool) => (
+        <li data-reveal>
+          <span class="pointer-events-auto chip">{tool}</span>
+        </li>
+      ))
+    }
+  </ul>
+</section>

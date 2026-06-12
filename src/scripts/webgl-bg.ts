@@ -1,18 +1,18 @@
 import * as THREE from 'three'
 
-// Live background: an organic blob displaced by simplex noise in the vertex
-// shader, colored ember-red → orange → neon-yellow by noise + fresnel,
-// plus a drifting particle field. Sits behind the glass UI at z-0.
+// Live background: a fullscreen aurora shader, slow bands of ember glow bent
+// by simplex noise, plus a drifting ember-dust particle field. The whole sky
+// is kept dim by design (deep ember tones, vignetted edges) so the glass UI
+// above stays readable everywhere. Sits behind the UI at z-0.
 //
 // No-motion-first: with prefers-reduced-motion we render a single static
-// frame; if WebGL is unavailable we bail and the CSS aurora wash stands in.
+// frame, re-rendered on scroll so the band drift still tracks the page; if
+// WebGL is unavailable we bail and the CSS aurora wash stands in.
 
 // rendering guardrails
 const PIXEL_RATIO_CAP = 2 // retina is plenty; 3x+ pixel ratios just heat phones
 const MAX_FRAME_DELTA = 0.05 // clamp long gaps (hidden tab, debugger) to one tick
-const STILL_FRAME_TIME = 2.5 // noise phase chosen for the reduced-motion still
-const SCROLL_FADE = 0.75 // the blob is a hero ornament: by one viewport of
-// scroll it dims to 25% so the content sections stay readable on top of it
+const STILL_FRAME_TIME = 40.0 // noise phase chosen for the reduced-motion still
 
 const NOISE_GLSL = /* glsl */ `
   // Ashima Arts simplex noise (webgl-noise), MIT
@@ -82,65 +82,80 @@ const NOISE_GLSL = /* glsl */ `
   }
 `
 
-const VERTEX = /* glsl */ `
+// fullscreen quad: vertices arrive in clip space already, no camera involved
+const AURORA_VERTEX = /* glsl */ `
+  varying vec2 vUv;
+
+  void main() {
+    vUv = uv;
+    gl_Position = vec4(position.xy, 1.0, 1.0);
+  }
+`
+
+const AURORA_FRAGMENT = /* glsl */ `
   uniform float uTime;
-  varying float vNoise;
-  varying vec3 vNormal;
-  varying vec3 vViewDir;
+  uniform float uScroll;
+  uniform float uAspect;
+  uniform vec2 uPointer;
+  varying vec2 vUv;
 
   ${NOISE_GLSL}
 
+  float fbm(vec3 p) {
+    float v = 0.5 * snoise(p);
+    v += 0.25 * snoise(p * 2.1);
+    v += 0.125 * snoise(p * 4.3);
+    return v;
+  }
+
+  // the ember ramp, every stop kept dim so white text passes contrast on top
+  const vec3 VOID_FLOOR = vec3(0.031, 0.012, 0.008);
+  const vec3 DEEP_EMBER = vec3(0.14, 0.045, 0.025);
+  const vec3 MUTED_RED = vec3(0.36, 0.11, 0.06);
+  const vec3 SOFT_ORANGE = vec3(0.52, 0.26, 0.09);
+  const vec3 FAINT_GOLD = vec3(0.60, 0.44, 0.17);
+
   void main() {
-    // two octaves: slow broad swell + faster surface ripple
-    float n = snoise(position * 0.9 + uTime * 0.10);
-    n += 0.35 * snoise(position * 2.3 - uTime * 0.15);
-    vNoise = n;
+    vec2 p = vec2(vUv.x * uAspect, vUv.y);
+    float t = uTime * 0.045;
 
-    vec3 displaced = position + normal * n * 0.42;
-    vec4 worldPos = modelMatrix * vec4(displaced, 1.0);
+    // slow domain-warped noise; the pointer drifts the field, scroll slides
+    // the bands, and neither ever raises the overall brightness
+    vec2 drift = uPointer * 0.10;
+    float warp = fbm(vec3(p * 1.3 + drift, t));
+    float detail = fbm(vec3(p * 3.1 - drift, t * 1.4 + 7.0));
 
-    vNormal = normalize(normalMatrix * normal);
-    vViewDir = normalize(cameraPosition - worldPos.xyz);
+    // aurora bands: soft horizontal waves bent by the noise field
+    float y = vUv.y + warp * 0.28 + detail * 0.07 + uScroll;
+    float bandA = 0.5 + 0.5 * sin(y * 7.0 + t * 1.6);
+    float bandB = 0.5 + 0.5 * sin(y * 3.2 - t * 1.1 + 2.1);
+    float glow = smoothstep(0.55, 1.0, bandA) * 0.7 + smoothstep(0.6, 1.0, bandB) * 0.5;
+    glow *= 0.55 + 0.45 * warp;
 
-    gl_Position = projectionMatrix * viewMatrix * worldPos;
+    vec3 col = mix(VOID_FLOOR, DEEP_EMBER, smoothstep(-0.4, 0.6, warp));
+    col = mix(col, MUTED_RED, glow);
+    col = mix(col, SOFT_ORANGE, glow * glow * 0.8);
+    col += FAINT_GOLD * pow(max(glow, 0.0), 3.0) * 0.25; // rare gold crests
+
+    // vignette keeps the edges near-black so the frame feels contained
+    vec2 c = vUv - 0.5;
+    col *= 1.0 - dot(c, c) * 1.1;
+
+    gl_FragColor = vec4(col, 1.0);
   }
 `
 
-const FRAGMENT = /* glsl */ `
-  uniform float uOpacity;
-  varying float vNoise;
-  varying vec3 vNormal;
-  varying vec3 vViewDir;
-
-  const vec3 DEEP_EMBER = vec3(0.30, 0.04, 0.02);   // valleys
-  const vec3 NEON_ORANGE = vec3(1.0, 0.55, 0.10);   // crests
-  const vec3 NEON_RED = vec3(1.0, 0.23, 0.23);      // midtones
-  const vec3 NEON_YELLOW = vec3(1.0, 0.84, 0.04);   // rim light
-
-  void main() {
-    float fresnel = pow(1.0 - max(dot(normalize(vNormal), normalize(vViewDir)), 0.0), 2.0);
-
-    vec3 col = mix(DEEP_EMBER, NEON_RED, smoothstep(-0.8, 0.2, vNoise));
-    col = mix(col, NEON_ORANGE, smoothstep(0.2, 1.0, vNoise));
-    col = mix(col, NEON_YELLOW, fresnel * 0.85);
-    col += NEON_YELLOW * pow(fresnel, 3.0) * 0.6; // hot rim glow
-
-    gl_FragColor = vec4(col, uOpacity);
-  }
-`
-
-function createParticles(): THREE.Points {
-  const count = 350
+function createParticles(count: number): THREE.Points {
   const positions = new Float32Array(count * 3)
   const colors = new Float32Array(count * 3)
   const palette = [
-    new THREE.Color('#ff3b3b'),
-    new THREE.Color('#ff8c1a'),
-    new THREE.Color('#ffd60a'),
+    new THREE.Color('#e25c4a'),
+    new THREE.Color('#f59141'),
+    new THREE.Color('#eec45c'),
   ]
 
   for (let i = 0; i < count; i++) {
-    // shell between r=3 and r=9 so dust never crosses the blob itself
+    // shell between r=3 and r=9 so the dust reads as depth, not clutter
     const r = 3 + Math.random() * 6
     const theta = Math.random() * Math.PI * 2
     const phi = Math.acos(2 * Math.random() - 1)
@@ -161,7 +176,7 @@ function createParticles(): THREE.Points {
     size: 0.035,
     vertexColors: true,
     transparent: true,
-    opacity: 0.7,
+    opacity: 0.55,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
   })
@@ -190,54 +205,38 @@ export function initWebGLBackground(canvas: HTMLCanvasElement): void {
 
   const uniforms = {
     uTime: { value: 0 },
-    uOpacity: { value: 1.0 },
+    uScroll: { value: 0 },
+    uAspect: { value: window.innerWidth / window.innerHeight },
+    uPointer: { value: new THREE.Vector2(0, 0) },
   }
 
-  const blob = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(1.5, isMobile ? 48 : 96),
+  const aurora = new THREE.Mesh(
+    new THREE.PlaneGeometry(2, 2),
     new THREE.ShaderMaterial({
       uniforms,
-      vertexShader: VERTEX,
-      fragmentShader: FRAGMENT,
-      transparent: true, // uOpacity drives the scroll fade
-    }),
-  )
-  // off-center so the hero copy and the shape share the viewport
-  blob.position.set(1.6, 0.2, 0)
-  scene.add(blob)
-
-  // ghost shell: same shader, wireframe, additive — a faint techno halo
-  const shellUniforms = {
-    uTime: uniforms.uTime,
-    uOpacity: { value: 0.07 },
-  }
-  const shell = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(2.0, 24),
-    new THREE.ShaderMaterial({
-      uniforms: shellUniforms,
-      vertexShader: VERTEX,
-      fragmentShader: FRAGMENT,
-      wireframe: true,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
+      vertexShader: AURORA_VERTEX,
+      fragmentShader: AURORA_FRAGMENT,
       depthWrite: false,
+      depthTest: false,
     }),
   )
-  shell.position.copy(blob.position)
-  scene.add(shell)
+  aurora.renderOrder = -1 // always the backdrop, dust draws over it
+  aurora.frustumCulled = false // clip-space quad, culling math doesn't apply
+  scene.add(aurora)
 
-  const particles = createParticles()
-  const particlesMat = particles.material as THREE.PointsMaterial
+  const particles = createParticles(isMobile ? 220 : 350)
   scene.add(particles)
 
   const onResize = () => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
+    uniforms.uAspect.value = window.innerWidth / window.innerHeight
     renderer.setSize(window.innerWidth, window.innerHeight, false)
   }
   window.addEventListener('resize', onResize)
 
   const pointer = { x: 0, y: 0 }
+  const pointerEased = { x: 0, y: 0 }
   let time = 0
   let lastFrame = performance.now()
 
@@ -247,31 +246,24 @@ export function initWebGLBackground(canvas: HTMLCanvasElement): void {
     time += Math.min((now - lastFrame) / 1000, MAX_FRAME_DELTA)
     lastFrame = now
     uniforms.uTime.value = time
+    uniforms.uScroll.value = window.scrollY * 0.0002
 
-    // ambient spin, counter-rotated shell, scroll nudges the blob along
-    blob.rotation.y = time * 0.06 + window.scrollY * 0.0004
-    blob.rotation.x = time * 0.03
-    shell.rotation.y = -time * 0.04
-    shell.rotation.x = time * 0.02
-    particles.rotation.y = time * 0.015
+    // eased pointer drift for the aurora domain and a gentle camera parallax
+    pointerEased.x += (pointer.x - pointerEased.x) * 0.03
+    pointerEased.y += (pointer.y - pointerEased.y) * 0.03
+    uniforms.uPointer.value.set(pointerEased.x, pointerEased.y)
+    camera.position.x += (pointerEased.x * 0.3 - camera.position.x) * 0.04
+    camera.position.y += (pointerEased.y * 0.2 - camera.position.y) * 0.04
+    camera.lookAt(0, 0, 0)
 
-    // recede behind the content once the hero scrolls away
-    const fade = 1 - SCROLL_FADE * Math.min(window.scrollY / window.innerHeight, 1)
-    uniforms.uOpacity.value = fade
-    shellUniforms.uOpacity.value = 0.07 * fade
-    particlesMat.opacity = 0.7 * fade
-
-    // pointer parallax, eased so the camera glides rather than tracks
-    camera.position.x += (pointer.x * 0.35 - camera.position.x) * 0.04
-    camera.position.y += (pointer.y * 0.25 - camera.position.y) * 0.04
-    camera.lookAt(blob.position.x * 0.4, 0, 0)
+    particles.rotation.y = time * 0.012
 
     renderer.render(scene, camera)
   }
 
   if (reducedMotion) {
-    // a single composed frame — the shape is present, just still; re-render
-    // on scroll (with time pinned) so the readability fade still applies
+    // a single composed frame — the sky is present, just still; re-render on
+    // scroll (with time pinned) so the band drift still tracks the page
     const renderStill = () => {
       time = STILL_FRAME_TIME
       lastFrame = performance.now()
