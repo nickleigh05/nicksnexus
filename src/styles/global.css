@@ -4,16 +4,16 @@
 @import '@fontsource/jetbrains-mono';
 
 @theme {
-  /* near-black with a violet undertone — true #000 reads flat under glass */
-  --color-void: #050208;
-  --color-ink: #eceaf6;
-  --color-ink-soft: #a49ec4;
-  --color-hairline: color-mix(in oklab, #eceaf6 12%, transparent);
+  /* near-black with a warm ember undertone — true #000 reads flat under glass */
+  --color-void: #080302;
+  --color-ink: #f5f0e8;
+  --color-ink-soft: #d3c8ba;
+  --color-hairline: color-mix(in oklab, #f5f0e8 12%, transparent);
 
-  /* the neon triad: electric blue → violet → pink */
-  --color-neon-blue: #00d4ff;
-  --color-neon-violet: #8b5cf6;
-  --color-neon-pink: #ff2d96;
+  /* the neon triad: red → orange → yellow */
+  --color-neon-red: #ff3b3b;
+  --color-neon-orange: #ff8c1a;
+  --color-neon-yellow: #ffd60a;
 
   --font-display: 'Space Grotesk Variable', system-ui, sans-serif;
   --font-sans: 'Inter Variable', system-ui, sans-serif;
@@ -28,12 +28,12 @@
 
 @layer base {
   ::selection {
-    background-color: var(--color-neon-pink);
+    background-color: var(--color-neon-orange);
     color: var(--color-void);
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-neon-blue);
+    outline: 2px solid var(--color-neon-orange);
     outline-offset: 3px;
   }
 
@@ -42,9 +42,9 @@
        graceful fallback when WebGL is unavailable or motion is reduced */
     background-color: var(--color-void);
     background-image:
-      radial-gradient(ellipse 90% 55% at 15% -10%, rgb(139 92 246 / 0.22), transparent 70%),
-      radial-gradient(ellipse 70% 45% at 95% 5%, rgb(0 212 255 / 0.13), transparent 70%),
-      radial-gradient(ellipse 60% 45% at 50% 115%, rgb(255 45 150 / 0.12), transparent 70%);
+      radial-gradient(ellipse 90% 55% at 15% -10%, rgb(255 59 59 / 0.2), transparent 70%),
+      radial-gradient(ellipse 70% 45% at 95% 5%, rgb(255 140 26 / 0.13), transparent 70%),
+      radial-gradient(ellipse 60% 45% at 50% 115%, rgb(255 214 10 / 0.1), transparent 70%);
     background-attachment: fixed;
   }
 
@@ -84,31 +84,92 @@
 @utility text-neon {
   background-image: linear-gradient(
     100deg,
-    var(--color-neon-blue),
-    var(--color-neon-violet) 50%,
-    var(--color-neon-pink)
+    var(--color-neon-red),
+    var(--color-neon-orange) 50%,
+    var(--color-neon-yellow)
   );
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
 }
 
-/* the glass surface: translucent fill + backdrop blur so the WebGL layer
-   visibly warps underneath; border catches the light at the edge */
+/* the glass surface: barely-there fill + deep saturated blur so the WebGL
+   layer glows straight through; border + inset highlight catch the light at
+   the edge. --shine (0–1, set per-element by motion.ts as it scrolls through
+   the viewport) slides a reflection streak across the face — the static
+   default keeps a subtle sheen when motion is off */
 @utility glass {
-  background-color: rgb(255 255 255 / 0.06);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  position: relative;
+  background-color: rgb(255 255 255 / 0.01);
+  /* light falls from the top edge; the face darkens toward the bottom so
+     text keeps contrast against whatever the nebula is doing behind it */
+  background-image: linear-gradient(
+    160deg,
+    rgb(255 255 255 / 0.05),
+    rgb(255 255 255 / 0.015) 45%,
+    rgb(8 3 2 / 0.22)
+  );
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
   border: 1px solid rgb(255 255 255 / 0.14);
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+  box-shadow:
+    0 25px 50px -12px rgb(0 0 0 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.12);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: linear-gradient(
+      115deg,
+      transparent 38%,
+      rgb(255 255 255 / 0.12) 48%,
+      rgb(255 255 255 / 0.04) 54%,
+      transparent 64%
+    );
+    background-size: 300% 100%;
+    background-repeat: no-repeat;
+    background-position-x: calc((1 - var(--shine, 0.35)) * 100%);
+    will-change: background-position;
+  }
 }
 
 @utility glass-bright {
-  background-color: rgb(255 255 255 / 0.1);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  position: relative;
+  background-color: rgb(255 255 255 / 0.015);
+  background-image: linear-gradient(
+    160deg,
+    rgb(255 255 255 / 0.08),
+    rgb(255 255 255 / 0.02) 45%,
+    rgb(8 3 2 / 0.25)
+  );
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
   border: 1px solid rgb(255 255 255 / 0.2);
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+  box-shadow:
+    0 25px 50px -12px rgb(0 0 0 / 0.5),
+    inset 0 1px 0 rgb(255 255 255 / 0.16);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: linear-gradient(
+      115deg,
+      transparent 38%,
+      rgb(255 255 255 / 0.16) 48%,
+      rgb(255 255 255 / 0.05) 54%,
+      transparent 64%
+    );
+    background-size: 300% 100%;
+    background-repeat: no-repeat;
+    background-position-x: calc((1 - var(--shine, 0.35)) * 100%);
+    will-change: background-position;
+  }
 }
 
 /* primary CTA: gradient fill with a neon halo that intensifies on hover */
@@ -121,13 +182,13 @@
   color: var(--color-void);
   background-image: linear-gradient(
     100deg,
-    var(--color-neon-blue),
-    var(--color-neon-violet) 55%,
-    var(--color-neon-pink)
+    var(--color-neon-red),
+    var(--color-neon-orange) 55%,
+    var(--color-neon-yellow)
   );
   background-size: 150% 100%;
   background-position: 0% 0%;
-  box-shadow: 0 0 24px rgb(139 92 246 / 0.45);
+  box-shadow: 0 0 24px rgb(255 140 26 / 0.45);
   transition:
     background-position var(--dur-ui) var(--ease-out-expo),
     box-shadow var(--dur-ui) var(--ease-out-expo),
@@ -135,7 +196,7 @@
 
   &:hover {
     background-position: 100% 0%;
-    box-shadow: 0 0 44px rgb(255 45 150 / 0.55);
+    box-shadow: 0 0 44px rgb(255 214 10 / 0.5);
     transform: translateY(-2px);
   }
 }
@@ -159,22 +220,25 @@
     transform var(--dur-ui) var(--ease-out-expo);
 
   &:hover {
-    border-color: rgb(0 212 255 / 0.6);
+    border-color: rgb(255 140 26 / 0.6);
     background-color: rgb(255 255 255 / 0.1);
-    box-shadow: 0 0 28px rgb(0 212 255 / 0.25);
+    box-shadow: 0 0 28px rgb(255 140 26 / 0.25);
     transform: translateY(-2px);
   }
 }
 
-/* inline text links: underline sweeps in, color shifts to neon blue */
+/* inline text links: light white at rest; on hover the underline sweeps in
+   and the text turns bold orange — the "bold" is a text-shadow stroke so
+   glyph widths don't change and neighbors don't jitter */
 @utility link-ink {
+  color: var(--color-ink);
   text-decoration: none;
   padding-bottom: 2px;
   background-image:
-    linear-gradient(var(--color-neon-blue), var(--color-neon-blue)),
+    linear-gradient(var(--color-neon-orange), var(--color-neon-orange)),
     linear-gradient(
-      color-mix(in oklab, var(--color-neon-blue) 40%, transparent),
-      color-mix(in oklab, var(--color-neon-blue) 40%, transparent)
+      color-mix(in oklab, var(--color-neon-orange) 40%, transparent),
+      color-mix(in oklab, var(--color-neon-orange) 40%, transparent)
     );
   background-repeat: no-repeat;
   background-position:
@@ -185,10 +249,14 @@
     100% 1.5px;
   transition:
     background-size var(--dur-ui) var(--ease-out-expo),
-    color var(--dur-micro) ease;
+    color var(--dur-micro) ease,
+    text-shadow var(--dur-micro) ease;
 
   &:hover {
-    color: var(--color-neon-blue);
+    color: var(--color-neon-orange);
+    text-shadow:
+      0 0 0.6px currentColor,
+      0 0 0.6px currentColor;
     background-size:
       100% 1.5px,
       100% 1.5px;

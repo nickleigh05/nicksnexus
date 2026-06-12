@@ -5,9 +5,9 @@ interface Props {
   title?: string
 }
 
-const { title = 'Nick Leigh' } = Astro.props
+const { title = 'Nicholas Leigh' } = Astro.props
 const description =
-  'Nick Leigh is a computer science student at Arizona State who builds things from scratch to understand them properly — currently focused on cloud and AI/ML.'
+  'Nicholas Leigh is a computer science student at Arizona State University working on data structures and algorithms, AI/ML models, and AWS cloud.'
 const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 const year = new Date().getFullYear()
 ---
@@ -20,7 +20,7 @@ const year = new Date().getFullYear()
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#050208" />
+    <meta name="theme-color" content="#080302" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -45,25 +45,36 @@ const year = new Date().getFullYear()
     <div class="pointer-events-none relative z-10">
       <header class="fixed inset-x-0 top-0 z-20 px-4" data-hero="frame">
         <nav
-          class="pointer-events-auto mx-auto mt-4 flex max-w-4xl items-center justify-between rounded-full glass px-6 py-3"
+          class="glass pointer-events-auto mx-auto mt-4 flex max-w-4xl items-center justify-between rounded-full px-6 py-3"
         >
           <a
             href={`${base}/`}
-            class="font-display text-lg font-bold tracking-tight transition-colors duration-(--dur-micro) hover:text-neon-blue"
+            class="font-display text-lg font-bold tracking-tight transition-colors duration-(--dur-micro) hover:text-neon-orange"
           >
-            nick leigh<span class="text-neon">.</span>
+            nicholas leigh<span class="text-neon">.</span>
           </a>
-          <div class="flex items-center gap-5 text-sm sm:gap-7">
-            <a href="#work" class="link-ink">work</a>
-            <a href="#contact" class="link-ink">contact</a>
+          <!-- every link jumps straight to its destination; on small screens
+               only projects + socials fit, and socials covers the rest -->
+          <div class="flex items-center gap-4 text-sm sm:gap-6">
+            <a href="#projects" class="link-ink">projects</a>
+            <a href="#email" class="hidden link-ink sm:inline">email</a>
+            <a
+              href="https://www.linkedin.com/in/-nicholas-leigh"
+              target="_blank"
+              rel="noopener"
+              class="hidden link-ink sm:inline"
+            >
+              linkedin
+            </a>
             <a
               href="https://github.com/nickleigh05"
               target="_blank"
               rel="noopener"
-              class="link-ink"
+              class="hidden link-ink sm:inline"
             >
               github
             </a>
+            <a href="#socials" class="link-ink">socials</a>
           </div>
         </nav>
       </header>

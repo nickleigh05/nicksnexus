@@ -18,6 +18,7 @@ async function init() {
   heroIntro()
   scrollReveals()
   cardTilt()
+  glassShine()
 }
 
 function heroIntro() {
@@ -85,8 +86,27 @@ function scrollReveals() {
   })
 }
 
-// glass cards lean toward the pointer; CSS keeps hover glow, GSAP owns
-// transforms so the two never fight over the same property
+// light reflects off the glass as it scrolls: each surface's --shine tracks
+// its travel through the viewport (CSS slides the streak); the fixed nav
+// never moves, so its glint follows overall page progress instead
+function glassShine() {
+  document.querySelectorAll<HTMLElement>('.glass, .glass-bright').forEach((el) => {
+    const setShine = (progress: number) => el.style.setProperty('--shine', String(progress))
+    ScrollTrigger.create(
+      el.closest('header')
+        ? { start: 0, end: 'max', onUpdate: (self) => setShine(self.progress) }
+        : {
+            trigger: el,
+            start: 'top bottom',
+            end: 'bottom top',
+            onUpdate: (self) => setShine(self.progress),
+          },
+    )
+  })
+}
+
+// glass cards lean toward the pointer and swell while held; CSS keeps hover
+// glow, GSAP owns transforms so the two never fight over the same property
 function cardTilt() {
   if (!window.matchMedia('(pointer: fine)').matches) return
 
@@ -94,15 +114,18 @@ function cardTilt() {
     gsap.set(card, { transformPerspective: 700 })
     const rotX = gsap.quickTo(card, 'rotationX', { duration: 0.5, ease: 'power3.out' })
     const rotY = gsap.quickTo(card, 'rotationY', { duration: 0.5, ease: 'power3.out' })
+    const scale = gsap.quickTo(card, 'scale', { duration: 0.45, ease: 'power3.out' })
 
+    card.addEventListener('pointerenter', () => scale(1.03))
     card.addEventListener('pointermove', (e) => {
       const r = card.getBoundingClientRect()
-      rotY(((e.clientX - r.left) / r.width - 0.5) * 8)
-      rotX(((e.clientY - r.top) / r.height - 0.5) * -8)
+      rotY(((e.clientX - r.left) / r.width - 0.5) * 10)
+      rotX(((e.clientY - r.top) / r.height - 0.5) * -10)
     })
     card.addEventListener('pointerleave', () => {
       rotX(0)
       rotY(0)
+      scale(1)
     })
   })
 }

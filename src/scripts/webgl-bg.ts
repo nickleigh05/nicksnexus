@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 
 // Live background: an organic blob displaced by simplex noise in the vertex
-// shader, colored electric-blue → violet → neon-pink by noise + fresnel,
+// shader, colored ember-red → orange → neon-yellow by noise + fresnel,
 // plus a drifting particle field. Sits behind the glass UI at z-0.
 //
 // No-motion-first: with prefers-reduced-motion we render a single static
@@ -11,6 +11,8 @@ import * as THREE from 'three'
 const PIXEL_RATIO_CAP = 2 // retina is plenty; 3x+ pixel ratios just heat phones
 const MAX_FRAME_DELTA = 0.05 // clamp long gaps (hidden tab, debugger) to one tick
 const STILL_FRAME_TIME = 2.5 // noise phase chosen for the reduced-motion still
+const SCROLL_FADE = 0.75 // the blob is a hero ornament: by one viewport of
+// scroll it dims to 25% so the content sections stay readable on top of it
 
 const NOISE_GLSL = /* glsl */ `
   // Ashima Arts simplex noise (webgl-noise), MIT
@@ -90,8 +92,8 @@ const VERTEX = /* glsl */ `
 
   void main() {
     // two octaves: slow broad swell + faster surface ripple
-    float n = snoise(position * 0.9 + uTime * 0.22);
-    n += 0.35 * snoise(position * 2.3 - uTime * 0.30);
+    float n = snoise(position * 0.9 + uTime * 0.10);
+    n += 0.35 * snoise(position * 2.3 - uTime * 0.15);
     vNoise = n;
 
     vec3 displaced = position + normal * n * 0.42;
@@ -110,18 +112,18 @@ const FRAGMENT = /* glsl */ `
   varying vec3 vNormal;
   varying vec3 vViewDir;
 
-  const vec3 DEEP_PURPLE = vec3(0.18, 0.07, 0.38);  // valleys
-  const vec3 ELECTRIC_BLUE = vec3(0.0, 0.83, 1.0);  // crests
-  const vec3 VIOLET = vec3(0.55, 0.36, 0.96);       // midtones
-  const vec3 NEON_PINK = vec3(1.0, 0.18, 0.59);     // rim light
+  const vec3 DEEP_EMBER = vec3(0.30, 0.04, 0.02);   // valleys
+  const vec3 NEON_ORANGE = vec3(1.0, 0.55, 0.10);   // crests
+  const vec3 NEON_RED = vec3(1.0, 0.23, 0.23);      // midtones
+  const vec3 NEON_YELLOW = vec3(1.0, 0.84, 0.04);   // rim light
 
   void main() {
     float fresnel = pow(1.0 - max(dot(normalize(vNormal), normalize(vViewDir)), 0.0), 2.0);
 
-    vec3 col = mix(DEEP_PURPLE, VIOLET, smoothstep(-0.8, 0.2, vNoise));
-    col = mix(col, ELECTRIC_BLUE, smoothstep(0.2, 1.0, vNoise));
-    col = mix(col, NEON_PINK, fresnel * 0.85);
-    col += NEON_PINK * pow(fresnel, 3.0) * 0.6; // hot rim glow
+    vec3 col = mix(DEEP_EMBER, NEON_RED, smoothstep(-0.8, 0.2, vNoise));
+    col = mix(col, NEON_ORANGE, smoothstep(0.2, 1.0, vNoise));
+    col = mix(col, NEON_YELLOW, fresnel * 0.85);
+    col += NEON_YELLOW * pow(fresnel, 3.0) * 0.6; // hot rim glow
 
     gl_FragColor = vec4(col, uOpacity);
   }
@@ -132,9 +134,9 @@ function createParticles(): THREE.Points {
   const positions = new Float32Array(count * 3)
   const colors = new Float32Array(count * 3)
   const palette = [
-    new THREE.Color('#00d4ff'),
-    new THREE.Color('#8b5cf6'),
-    new THREE.Color('#ff2d96'),
+    new THREE.Color('#ff3b3b'),
+    new THREE.Color('#ff8c1a'),
+    new THREE.Color('#ffd60a'),
   ]
 
   for (let i = 0; i < count; i++) {
@@ -193,7 +195,12 @@ export function initWebGLBackground(canvas: HTMLCanvasElement): void {
 
   const blob = new THREE.Mesh(
     new THREE.IcosahedronGeometry(1.5, isMobile ? 48 : 96),
-    new THREE.ShaderMaterial({ uniforms, vertexShader: VERTEX, fragmentShader: FRAGMENT }),
+    new THREE.ShaderMaterial({
+      uniforms,
+      vertexShader: VERTEX,
+      fragmentShader: FRAGMENT,
+      transparent: true, // uOpacity drives the scroll fade
+    }),
   )
   // off-center so the hero copy and the shape share the viewport
   blob.position.set(1.6, 0.2, 0)
@@ -220,6 +227,7 @@ export function initWebGLBackground(canvas: HTMLCanvasElement): void {
   scene.add(shell)
 
   const particles = createParticles()
+  const particlesMat = particles.material as THREE.PointsMaterial
   scene.add(particles)
 
   const onResize = () => {
@@ -247,6 +255,12 @@ export function initWebGLBackground(canvas: HTMLCanvasElement): void {
     shell.rotation.x = time * 0.02
     particles.rotation.y = time * 0.015
 
+    // recede behind the content once the hero scrolls away
+    const fade = 1 - SCROLL_FADE * Math.min(window.scrollY / window.innerHeight, 1)
+    uniforms.uOpacity.value = fade
+    shellUniforms.uOpacity.value = 0.07 * fade
+    particlesMat.opacity = 0.7 * fade
+
     // pointer parallax, eased so the camera glides rather than tracks
     camera.position.x += (pointer.x * 0.35 - camera.position.x) * 0.04
     camera.position.y += (pointer.y * 0.25 - camera.position.y) * 0.04
@@ -256,9 +270,15 @@ export function initWebGLBackground(canvas: HTMLCanvasElement): void {
   }
 
   if (reducedMotion) {
-    // a single composed frame — the shape is present, just still
-    time = STILL_FRAME_TIME
-    renderFrame()
+    // a single composed frame — the shape is present, just still; re-render
+    // on scroll (with time pinned) so the readability fade still applies
+    const renderStill = () => {
+      time = STILL_FRAME_TIME
+      lastFrame = performance.now()
+      renderFrame()
+    }
+    renderStill()
+    window.addEventListener('scroll', renderStill, { passive: true })
     return
   }
 

@@ -1,0 +1,92 @@
+---
+// one card per channel so people land exactly where they're headed;
+// each card borrows a different color from the neon triad
+interface Social {
+  label: string
+  value: string
+  blurb: string
+  href: string
+  accent: string
+  id?: string
+  external?: boolean
+}
+
+const socials: Social[] = [
+  {
+    label: 'email',
+    value: 'nickleigh05@icloud.com',
+    blurb: 'The fastest way to reach me. My inbox is always open.',
+    href: 'mailto:nickleigh05@icloud.com',
+    accent: 'text-neon-orange',
+    id: 'email',
+  },
+  {
+    label: 'linkedin',
+    value: 'nicholas leigh',
+    blurb: 'The professional rundown. Let’s connect.',
+    href: 'https://www.linkedin.com/in/-nicholas-leigh',
+    accent: 'text-neon-red',
+    external: true,
+  },
+  {
+    label: 'github',
+    value: '@nickleigh05',
+    blurb: 'Where all the code actually lives.',
+    href: 'https://github.com/nickleigh05',
+    accent: 'text-neon-yellow',
+    external: true,
+  },
+]
+
+// email addresses are one long token; offer a soft break before the @ so
+// narrow cards wrap there instead of mid-word ("@nickleigh05" stays whole)
+const valueParts = (v: string) => {
+  const at = v.indexOf('@', 1)
+  return at === -1 ? [v] : [v.slice(0, at), v.slice(at)]
+}
+---
+
+<section id="socials" class="scroll-mt-28 pb-24" data-reveal-group>
+  <h2 class="mb-10 font-mono text-xs tracking-[0.2em] text-neon-orange uppercase" data-reveal>
+    11 / contact &amp; socials
+  </h2>
+  <div class="glass-bright rounded-3xl px-8 py-12 text-center sm:px-16" data-reveal>
+    <p class="font-display text-3xl font-bold tracking-tight sm:text-5xl">
+      Looking for a <span class="text-neon">2027 swe internship</span>
+    </p>
+    <p class="mx-auto mt-5 max-w-md leading-relaxed text-ink-soft">
+      If you're hiring, or you just want to talk shop, pick whichever door you like.
+    </p>
+  </div>
+  <ul class="mt-6 grid gap-6 sm:grid-cols-3">
+    {
+      socials.map(({ label, value, blurb, href, accent, id, external }) => (
+        <li id={id} data-reveal data-tilt class="scroll-mt-28 will-change-transform">
+          <a
+            href={href}
+            target={external ? '_blank' : undefined}
+            rel={external ? 'noopener' : undefined}
+            class="group glass-bright pointer-events-auto block h-full rounded-3xl p-9 transition-[border-color,box-shadow,background-color] duration-(--dur-ui) ease-(--ease-out-expo) hover:border-white/35 hover:bg-white/10 hover:shadow-[0_0_48px_rgb(255_140_26/0.3)]"
+          >
+            <p class={`font-mono text-xs tracking-[0.18em] uppercase ${accent}`}>{label}</p>
+            <p class="mt-4 font-display text-xl font-bold tracking-tight break-words transition-colors duration-(--dur-micro) group-hover:text-neon-orange">
+              {valueParts(value).map((part, i) => (
+                <>
+                  {i > 0 && <wbr />}
+                  {part}
+                </>
+              ))}
+              <span
+                class="ml-2 inline-block text-neon-orange opacity-0 transition-all duration-(--dur-ui) ease-(--ease-out-expo) group-hover:translate-x-1 group-hover:opacity-100"
+                aria-hidden="true"
+              >
+                →
+              </span>
+            </p>
+            <p class="mt-3 text-sm leading-relaxed text-ink-soft">{blurb}</p>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</section>
