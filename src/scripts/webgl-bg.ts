@@ -1,9 +1,12 @@
 import * as THREE from 'three'
 
 // Live background: a fullscreen aurora shader, slow bands of ember glow bent
-// by simplex noise, plus a drifting ember-dust particle field. The whole sky
-// is kept dim by design (deep ember tones, vignetted edges) so the glass UI
-// above stays readable everywhere. Sits behind the UI at z-0.
+// by simplex noise, plus a drifting ember-dust particle field. A glowing
+// orange stream runs the full height of the viewport, meandering with noise
+// and parting around the hero CTA buttons (their rects are measured per frame
+// and fed in as uniforms, so the stream tracks them through scroll and the
+// magnetic hover). The whole sky is kept dim by design so the glass UI above
+// stays readable everywhere. Sits behind the UI at z-0.
 //
 // No-motion-first: with prefers-reduced-motion we render a single static
 // frame, re-rendered on scroll so the band drift still tracks the page; if
@@ -97,6 +100,8 @@ const AURORA_FRAGMENT = /* glsl */ `
   uniform float uScroll;
   uniform float uAspect;
   uniform vec2 uPointer;
+  uniform vec4 uBtnA; // hero CTA capsules the stream parts around:
+  uniform vec4 uBtnB; // center.xy + half-size.zw, all in uv space
   varying vec2 vUv;
 
   ${NOISE_GLSL}
@@ -108,12 +113,33 @@ const AURORA_FRAGMENT = /* glsl */ `
     return v;
   }
 
-  // the ember ramp, every stop kept dim so white text passes contrast on top
-  const vec3 VOID_FLOOR = vec3(0.031, 0.012, 0.008);
-  const vec3 DEEP_EMBER = vec3(0.14, 0.045, 0.025);
-  const vec3 MUTED_RED = vec3(0.36, 0.11, 0.06);
-  const vec3 SOFT_ORANGE = vec3(0.52, 0.26, 0.09);
-  const vec3 FAINT_GOLD = vec3(0.60, 0.44, 0.17);
+  // flowing current: noise squeezed in x, stretched in y, falling over time
+  float flowNoise(vec2 q, float t) {
+    vec2 s = vec2(q.x * 16.0, q.y * 2.2 + t * 0.6);
+    float n = 0.65 * snoise(vec3(s, t * 0.10));
+    n += 0.35 * snoise(vec3(s * vec2(2.3, 1.4) + 17.0, t * 0.16));
+    return n * 0.5 + 0.5;
+  }
+
+  // normalized squared distance to a button capsule (~1.0 at its edge);
+  // pad grows the capsule so the stream keeps a margin of dark around it
+  float btnField(vec2 q, vec4 btn, float pad) {
+    vec2 d = (q - vec2(btn.x * uAspect, btn.y)) / (vec2(btn.z * uAspect, btn.w) + pad);
+    return dot(d, d);
+  }
+
+  // the ember ramp from huly's warm family, every stop kept dim so white
+  // text passes contrast on top
+  const vec3 VOID_FLOOR = vec3(0.027, 0.030, 0.038); // --color-void, a step darker
+  const vec3 DEEP_EMBER = vec3(0.14, 0.04, 0.01); // #cd3100, dimmed
+  const vec3 MUTED_RED = vec3(0.38, 0.10, 0.04);
+  const vec3 SOFT_ORANGE = vec3(0.50, 0.24, 0.16); // #ff7950, dimmed
+  const vec3 FAINT_GOLD = vec3(0.62, 0.53, 0.39); // #ffda9f, dimmed
+
+  // the stream ramp — ember root to a pale gold core, dimmed for readability
+  const vec3 STREAM_EMBER = vec3(0.40, 0.10, 0.0); // #cd3100, dimmed
+  const vec3 STREAM_ORANGE = vec3(0.72, 0.34, 0.22); // #ff7950, dimmed
+  const vec3 STREAM_CORE = vec3(0.95, 0.80, 0.58); // #ffda9f, near full
 
   void main() {
     vec2 p = vec2(vUv.x * uAspect, vUv.y);
@@ -137,6 +163,43 @@ const AURORA_FRAGMENT = /* glsl */ `
     col = mix(col, SOFT_ORANGE, glow * glow * 0.8);
     col += FAINT_GOLD * pow(max(glow, 0.0), 3.0) * 0.25; // rare gold crests
 
+    // the stream: a glowing orange river running top to bottom; its
+    // centerline meanders with the page, gets drawn toward the CTA row,
+    // and the current bows outward around each button capsule
+    {
+      vec2 q = vec2(vUv.x * uAspect, vUv.y);
+
+      float meander = snoise(vec3(0.0, vUv.y * 1.8 + uScroll * 4.0, uTime * 0.05)) * 0.22;
+      float cx = 0.5 * uAspect + meander;
+      float pull = exp(-pow((vUv.y - uBtnA.y) * 3.0, 2.0));
+      cx = mix(cx, (uBtnA.x + uBtnB.x) * 0.5 * uAspect, pull * 0.85);
+
+      // potential-flow style push: streamlines bow outward near a capsule
+      float fA = btnField(q, uBtnA, 0.03);
+      float fB = btnField(q, uBtnB, 0.03);
+      float qx = q.x;
+      qx += (q.x - uBtnA.x * uAspect) * exp(-fA) * 1.2;
+      qx += (q.x - uBtnB.x * uAspect) * exp(-fB) * 1.2;
+
+      float dx = abs(qx - cx);
+      float core = smoothstep(0.10, 0.0, dx);
+      float haze = smoothstep(0.34, 0.0, dx) * 0.5;
+
+      // downward current, advected by time and by the page scroll
+      float flow = flowNoise(vec2(qx, vUv.y + uScroll * 10.0), uTime);
+      flow = 0.55 + 0.45 * flow;
+
+      // carve the capsules out of the river and rim-light their edges
+      float carve = smoothstep(0.7, 1.15, min(fA, fB));
+      float rim = (exp(-abs(fA - 1.0) * 5.0) + exp(-abs(fB - 1.0) * 5.0)) * 0.35;
+
+      float stream = (core + haze) * flow * carve + rim * smoothstep(0.5, 0.0, dx);
+
+      vec3 streamCol = mix(STREAM_EMBER, STREAM_ORANGE, core);
+      streamCol = mix(streamCol, STREAM_CORE, core * core * 0.6);
+      col += streamCol * stream * 0.55;
+    }
+
     // vignette keeps the edges near-black so the frame feels contained
     vec2 c = vUv - 0.5;
     col *= 1.0 - dot(c, c) * 1.1;
@@ -149,9 +212,9 @@ function createParticles(count: number): THREE.Points {
   const positions = new Float32Array(count * 3)
   const colors = new Float32Array(count * 3)
   const palette = [
-    new THREE.Color('#e25c4a'),
-    new THREE.Color('#f59141'),
-    new THREE.Color('#eec45c'),
+    new THREE.Color('#ff4d4d'),
+    new THREE.Color('#ff7950'),
+    new THREE.Color('#ffda9f'),
   ]
 
   for (let i = 0; i < count; i++) {
@@ -208,6 +271,29 @@ export function initWebGLBackground(canvas: HTMLCanvasElement): void {
     uScroll: { value: 0 },
     uAspect: { value: window.innerWidth / window.innerHeight },
     uPointer: { value: new THREE.Vector2(0, 0) },
+    // hero CTA capsules, parked far offscreen until measured
+    uBtnA: { value: new THREE.Vector4(0.5, -10, 0.01, 0.01) },
+    uBtnB: { value: new THREE.Vector4(0.5, -10, 0.01, 0.01) },
+  }
+
+  // the stream parts around the hero CTAs; their rects are viewport-relative
+  // (canvas is fixed), so measuring per frame keeps the carve in lockstep
+  // with scroll and with the magnetic-button transforms
+  const buttons = Array.from(document.querySelectorAll('#about [data-magnetic]')).slice(
+    0,
+    2,
+  ) as HTMLElement[]
+  const buttonUniforms = [uniforms.uBtnA, uniforms.uBtnB]
+  const measureButtons = () => {
+    buttons.forEach((el, i) => {
+      const r = el.getBoundingClientRect()
+      buttonUniforms[i].value.set(
+        (r.left + r.width / 2) / window.innerWidth,
+        1 - (r.top + r.height / 2) / window.innerHeight,
+        r.width / 2 / window.innerWidth,
+        r.height / 2 / window.innerHeight,
+      )
+    })
   }
 
   const aurora = new THREE.Mesh(
@@ -247,6 +333,7 @@ export function initWebGLBackground(canvas: HTMLCanvasElement): void {
     lastFrame = now
     uniforms.uTime.value = time
     uniforms.uScroll.value = window.scrollY * 0.0002
+    measureButtons()
 
     // eased pointer drift for the aurora domain and a gentle camera parallax
     pointerEased.x += (pointer.x - pointerEased.x) * 0.03

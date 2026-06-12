@@ -44,7 +44,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '')
 ---
 
 <section id="socials" class="scroll-mt-28 pb-28" data-reveal-group>
-  <p class="mb-3 font-mono text-xs tracking-[0.2em] text-neon-orange uppercase" data-reveal>
+  <p class="mb-3 font-mono text-xs tracking-[0.2em] text-accent uppercase" data-reveal>
     101 / contact &amp; socials
   </p>
   <h2 class="mb-10 font-display text-4xl font-bold tracking-tight sm:text-5xl" data-reveal>
@@ -71,10 +71,10 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '')
             href={href}
             target={external ? '_blank' : undefined}
             rel={external ? 'noopener' : undefined}
-            class="group glass-bright pointer-events-auto block h-full rounded-3xl p-9 transition-[border-color,box-shadow,background-color] duration-(--dur-ui) ease-(--ease-out-expo) hover:border-white/35 hover:bg-white/10 hover:shadow-[0_0_48px_rgb(245_145_65/0.25)]"
+            class="group glass-bright pointer-events-auto block h-full rounded-3xl p-9 transition-[border-color,box-shadow,background-color] duration-(--dur-ui) ease-(--ease-out-expo) hover:border-white/35 hover:bg-white/10 hover:shadow-[0_0_48px_rgb(124_58_237/0.3)]"
           >
-            <p class="font-mono text-xs tracking-[0.18em] text-neon-orange uppercase">{label}</p>
-            <p class="mt-4 font-display text-xl font-bold tracking-tight break-words transition-colors duration-(--dur-micro) group-hover:text-neon-orange">
+            <p class="font-mono text-xs tracking-[0.18em] text-accent uppercase">{label}</p>
+            <p class="mt-4 font-display text-xl font-bold tracking-tight break-words transition-colors duration-(--dur-micro) group-hover:text-accent">
               {valueParts(value).map((part, i) => (
                 <>
                   {i > 0 && <wbr />}
@@ -82,7 +82,7 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '')
                 </>
               ))}
               <span
-                class="ml-2 inline-block text-neon-orange opacity-0 transition-all duration-(--dur-ui) ease-(--ease-out-expo) group-hover:translate-x-1 group-hover:opacity-100"
+                class="ml-2 inline-block text-accent opacity-0 transition-all duration-(--dur-ui) ease-(--ease-out-expo) group-hover:translate-x-1 group-hover:opacity-100"
                 aria-hidden="true"
               >
                 →

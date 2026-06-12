@@ -20,7 +20,7 @@ const year = new Date().getFullYear()
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#080302" />
+    <meta name="theme-color" content="#0b0b0f" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -35,13 +35,10 @@ const year = new Date().getFullYear()
     </noscript>
   </head>
   <body class="bg-void font-sans text-ink antialiased">
-    <!-- layer 1: live WebGL background, fixed behind everything -->
-    <canvas id="webgl-bg" class="fixed top-0 left-0 z-0 h-screen w-screen" aria-hidden="true"
-    ></canvas>
     <div class="grain" aria-hidden="true"></div>
 
-    <!-- layer 2: UI overlay — inert by default so the canvas shows through;
-         interactive elements opt back in with pointer-events-auto -->
+    <!-- UI overlay — inert by default; interactive elements opt back in with
+         pointer-events-auto -->
     <div class="pointer-events-none relative z-10">
       <header class="fixed inset-x-0 top-0 z-20 px-4" data-hero="frame">
         <nav
@@ -49,7 +46,7 @@ const year = new Date().getFullYear()
         >
           <a
             href={`${base}/`}
-            class="font-display text-lg font-bold tracking-tight transition-colors duration-(--dur-micro) hover:text-neon-orange"
+            class="font-display text-lg font-bold tracking-tight transition-colors duration-(--dur-micro) hover:text-accent-bright"
           >
             nicholas leigh<span class="text-neon">.</span>
           </a>
@@ -122,7 +119,7 @@ const year = new Date().getFullYear()
         <div
           class="mt-8 flex flex-wrap items-baseline justify-between gap-2 font-mono text-xs text-ink-soft"
         >
-          <span>designed &amp; built by nicholas leigh · astro + three.js</span>
+          <span>designed &amp; built by nicholas leigh · astro</span>
           <span
             >© {year} · <span title={`${year} in hexadecimal`}
               >0x{year.toString(16).toUpperCase()}</span
@@ -133,17 +130,7 @@ const year = new Date().getFullYear()
     </div>
 
     <script>
-      import { initWebGLBackground } from '../scripts/webgl-bg'
       import '../scripts/motion'
-
-      // boot WebGL after load so LCP locks onto the headline, not the canvas;
-      // until then the CSS aurora wash holds the frame
-      const boot = () => {
-        const canvas = document.getElementById('webgl-bg')
-        if (canvas instanceof HTMLCanvasElement) initWebGLBackground(canvas)
-      }
-      if (document.readyState === 'complete') boot()
-      else window.addEventListener('load', boot, { once: true })
     </script>
   </body>
 </html>

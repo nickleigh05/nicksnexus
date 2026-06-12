@@ -48,7 +48,7 @@ const projects: Project[] = [
 {
   projects.length > 0 && (
     <section id="projects" class="scroll-mt-28 pb-36" data-reveal-group>
-      <p class="mb-3 font-mono text-xs tracking-[0.2em] text-neon-orange uppercase" data-reveal>
+      <p class="mb-3 font-mono text-xs tracking-[0.2em] text-accent uppercase" data-reveal>
         10 / projects
       </p>
       <h2 class="mb-10 font-display text-4xl font-bold tracking-tight sm:text-5xl" data-reveal>
@@ -59,11 +59,11 @@ const projects: Project[] = [
           const href = live || github
           const inner = (
             <>
-              <h3 class="font-display text-2xl font-bold tracking-tight transition-colors duration-(--dur-micro) group-hover:text-neon-orange">
+              <h3 class="font-display text-2xl font-bold tracking-tight transition-colors duration-(--dur-micro) group-hover:text-accent">
                 {title}
                 {href && (
                   <span
-                    class="ml-2 inline-block text-neon-orange opacity-0 transition-all duration-(--dur-ui) ease-(--ease-out-expo) group-hover:translate-x-1 group-hover:opacity-100"
+                    class="ml-2 inline-block text-accent opacity-0 transition-all duration-(--dur-ui) ease-(--ease-out-expo) group-hover:translate-x-1 group-hover:opacity-100"
                     aria-hidden="true"
                   >
                     →
@@ -71,16 +71,16 @@ const projects: Project[] = [
                 )}
               </h3>
               {status && (
-                <span class="mt-3 inline-block rounded-full border border-neon-yellow/40 px-2.5 py-0.5 font-mono text-[10px] tracking-[0.18em] text-neon-yellow uppercase">
+                <span class="mt-3 inline-block rounded-full border border-accent/40 px-2.5 py-0.5 font-mono text-[10px] tracking-[0.18em] text-accent-glow uppercase">
                   {status}
                 </span>
               )}
               <p class="mt-3 leading-relaxed text-ink-soft">{description}</p>
-              <p class="mt-6 font-mono text-xs text-neon-orange/80">{tech}</p>
+              <p class="mt-6 font-mono text-xs text-accent/80">{tech}</p>
             </>
           )
           const cardClass =
-            'glass-bright group pointer-events-auto block h-full rounded-3xl p-8 transition-[border-color,box-shadow,background-color] duration-(--dur-ui) ease-(--ease-out-expo) hover:border-white/35 hover:bg-white/10 hover:shadow-[0_0_48px_rgb(245_145_65/0.25)]'
+            'glass-bright group pointer-events-auto block h-full rounded-3xl p-8 transition-[border-color,box-shadow,background-color] duration-(--dur-ui) ease-(--ease-out-expo) hover:border-white/35 hover:bg-white/10 hover:shadow-[0_0_48px_rgb(124_58_237/0.3)]'
           return (
             <li data-reveal data-tilt class="will-change-transform">
               {href ? (

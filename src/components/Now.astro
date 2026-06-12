@@ -8,7 +8,7 @@ const items = [
 ---
 
 <section id="now" class="scroll-mt-28 pb-36" data-reveal-group>
-  <p class="mb-3 font-mono text-xs tracking-[0.2em] text-neon-orange uppercase" data-reveal>
+  <p class="mb-3 font-mono text-xs tracking-[0.2em] text-accent uppercase" data-reveal>
     100 / currently
   </p>
   <h2 class="mb-10 font-display text-4xl font-bold tracking-tight sm:text-5xl" data-reveal>
@@ -18,7 +18,7 @@ const items = [
     {
       items.map((item, i) => (
         <li class="flex items-baseline gap-4" data-reveal>
-          <span class="font-mono text-xs text-neon-orange">{String(i + 1).padStart(2, '0')}</span>
+          <span class="font-mono text-xs text-accent">{String(i + 1).padStart(2, '0')}</span>
           <p class="text-lg leading-relaxed text-ink-soft">{item}</p>
         </li>
       ))
