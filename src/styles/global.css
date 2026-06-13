@@ -59,6 +59,23 @@
     background-size: 180px 180px;
   }
 
+  /* hero headline: slightly cool-white base so the sweeping pure-white streak
+     reads as a reflection; --shine (0→1) is driven by scroll in motion.ts */
+  [data-text-shine] {
+    background-image: linear-gradient(
+      100deg,
+      rgb(222 222 238),
+      rgb(222 222 238) calc(var(--shine, 0) * 130% - 30%),
+      rgb(255 255 255) calc(var(--shine, 0) * 130% - 10%),
+      rgb(255 255 255) calc(var(--shine, 0) * 130% + 10%),
+      rgb(222 222 238) calc(var(--shine, 0) * 130% + 30%),
+      rgb(222 222 238)
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
   /* no-motion-first: elements start visible; motion script hides + reveals
      them only when the user allows motion (JS is bundled, so no race) */
   @media (prefers-reduced-motion: no-preference) {
@@ -163,35 +180,6 @@
     background-repeat: no-repeat;
     background-position-x: calc((1 - var(--shine, 0.35)) * 100%);
     will-change: background-position;
-  }
-}
-
-/* filled gradient pill — available for non-hero uses */
-@utility btn-neon {
-  display: inline-block;
-  border-radius: 9999px;
-  padding: 0.875rem 2rem;
-  font-family: var(--font-display);
-  font-weight: 600;
-  color: var(--color-ink);
-  background-image: linear-gradient(
-    100deg,
-    var(--color-accent),
-    var(--color-accent-bright) 55%,
-    var(--color-accent-glow)
-  );
-  background-size: 150% 100%;
-  background-position: 0% 0%;
-  box-shadow: 0 0 24px rgb(124 58 237 / 0.45);
-  transition:
-    background-position var(--dur-ui) var(--ease-out-expo),
-    box-shadow var(--dur-ui) var(--ease-out-expo),
-    transform var(--dur-ui) var(--ease-out-expo);
-
-  &:hover {
-    background-position: 100% 0%;
-    box-shadow: 0 0 44px rgb(168 85 247 / 0.5);
-    transform: translateY(-2px);
   }
 }
 

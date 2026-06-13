@@ -23,6 +23,7 @@ async function init() {
   scrollReveals()
   cardTilt()
   glassShine()
+  headlineShine()
   magneticButtons()
 }
 
@@ -153,6 +154,20 @@ function magneticButtons() {
       x(0)
       y(0)
     })
+  })
+}
+
+// sweeps a pure-white glint across the hero headline as the section scrolls
+// past; the CSS gradient does the visual work, this just drives --shine (0→1)
+function headlineShine() {
+  const el = document.querySelector<HTMLElement>('[data-text-shine]')
+  if (!el) return
+  const section = el.closest('section') ?? el
+  ScrollTrigger.create({
+    trigger: section,
+    start: 'top top',
+    end: 'bottom top',
+    onUpdate: (self) => el.style.setProperty('--shine', String(self.progress)),
   })
 }
 
