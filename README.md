@@ -1,6 +1,14 @@
 # nicksnexus
 
-Personal site for Nick Leigh — [nicksnexus](https://nickleigh05.github.io/nicksnexus/).
+---
+
+### Click here to see the website
+
+> ## --> [nickleigh05.github.io/nicksnexus](https://nickleigh05.github.io/nicksnexus/) <--
+
+---
+
+My personal website, created by me, Nicholas Leigh.
 
 A single page rendered over a live WebGL background: a simplex-noise blob with custom GLSL shaders drifts behind a glassmorphic UI, so the animation visibly warps through the frosted cards above it.
 
